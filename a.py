@@ -1,3 +1,8 @@
-class b():
-    def __init__(self,a):
+
+
+
+
+class A():
+    def __init__(self,a,b):
         self.a=a
+        self.b=b
