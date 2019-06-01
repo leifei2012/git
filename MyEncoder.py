@@ -26,7 +26,8 @@ class myEncoder(tf.keras.Model):
         
     def call(self, x, hidden):
         x = self.embedding(x)
-        output, state = self.gru(x, initial_state = hidden)        
+        output, state = self.gru(x, initial_state = hidden)   
+        print("encoder: output-"+str( output.shape)+"state-"+str(state.shape))     
         return output, state
     
     def initialize_hidden_state(self):

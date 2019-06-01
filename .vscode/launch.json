@@ -6,7 +6,6 @@
     "configurations": [
         {
             "name": "Python: 当前文件",
-            "pythonPath": "C:/Users/leipengfei_sx/AppData/Local/Programs/Python/Python37/python",
             "type": "python",
             "request": "launch",
             "program": "${file}",

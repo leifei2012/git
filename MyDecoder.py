@@ -32,10 +32,12 @@ class myDecoder(tf.keras.Model):
         
         # attention_weights shape == (batch_size, max_length, 1)
         attention_weights = tf.nn.softmax(score, axis=1)
-        
+        print("attention_weights:"+str(attention_weights.shape)) 
         # context_vector shape after sum == (batch_size, hidden_size)
         context_vector = attention_weights * enc_output
+        print("context_vector:"+str(context_vector.shape))  
         context_vector = tf.reduce_sum(context_vector, axis=1)
+        print("context_vector:"+str(context_vector.shape))  
         
         # x shape after passing through embedding == (batch_size, 1, embedding_dim)
         x = self.embedding(x)
@@ -45,13 +47,14 @@ class myDecoder(tf.keras.Model):
         
         # passing the concatenated vector to the GRU
         output, state = self.gru(x)
+        print("decoder: output-"+str( output.shape)+"state-"+str(state.shape))  
         
         # output shape == (batch_size * 1, hidden_size)
         output = tf.reshape(output, (-1, output.shape[2]))
         
         # output shape == (batch_size * 1, vocab)
         x = self.fc(output)
-        
+        print("decoder: output-"+str( output.shape))  
         return x, state, attention_weights
         
     def initialize_hidden_state(self):
