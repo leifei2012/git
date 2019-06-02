@@ -1,19 +1,22 @@
 from __future__ import absolute_import, division, print_function
 
+import os
+import re
+import time
+import unicodedata
+
+import jieba
+import matplotlib.pyplot as plt
+import numpy as np
 # Import TensorFlow >= 1.10 and enable eager execution
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
+
+from MyDecoder import myDecoder
+from MyEncoder import myEncoder
 
 tf.enable_eager_execution()
 
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-import unicodedata
-import re
-import numpy as np
-import os
-import time
-from MyEncoder import myEncoder
-from MyDecoder import myDecoder
 
 print(tf.__version__)
 
@@ -38,10 +41,11 @@ def preprocess_sentence(w):
     # w = re.sub(r"[^a-zA-Z?.!,¿]+", " ", w)
     
     w = w.rstrip().strip()
+    w=" ".join(jieba.cut(w))
     
     # adding a start and an end token to the sentence
     # so that the model know when to start and stop predicting.
-    w = '<start> ' + w + ' <end>'
+    w = '<start> ' + w.replace("  ","") + ' <end>'
     return w
 
 
@@ -52,7 +56,6 @@ def create_dataset(path, num_examples):
     lines = open(path, encoding='UTF-8').read().strip().split('\n')
     
     word_pairs = [[preprocess_sentence(w) for w in l.split('\t')]  for l in lines[:num_examples]]
-    
     return word_pairs
 
 # This class creates a word -> index mapping (e.g,. "dad" -> 5) and vice-versa 
@@ -124,7 +127,7 @@ input_tensor_train, input_tensor_val, target_tensor_train, target_tensor_val = t
 # Show length
 len(input_tensor_train), len(target_tensor_train), len(input_tensor_val), len(target_tensor_val)
 BUFFER_SIZE = len(input_tensor_train)
-BATCH_SIZE = 64
+BATCH_SIZE = 2
 N_BATCH = BUFFER_SIZE//BATCH_SIZE
 embedding_dim = 256
 units = 1024
@@ -150,7 +153,7 @@ checkpoint = tf.train.Checkpoint(optimizer=optimizer,
                                  encoder=encoder,
                                  decoder=decoder)
 
-EPOCHS = 10
+EPOCHS = 2
 
 for epoch in range(EPOCHS):
     start = time.time()
@@ -161,11 +164,13 @@ for epoch in range(EPOCHS):
         loss = 0
         
         with tf.GradientTape() as tape:
+            print("vocab"+str(inp))
             enc_output, enc_hidden = encoder(inp, hidden)
             
             dec_hidden = enc_hidden
             
-            dec_input = tf.expand_dims([targ_lang.word2idx['<start>']] * BATCH_SIZE, 1)       
+            dec_input = tf.expand_dims([targ_lang.word2idx['<start>']] * BATCH_SIZE, 1)    
+            print("dec_input-"+str(dec_input)+"dec_hidden-"+str(dec_hidden))
             
             # Teacher forcing - feeding the target as the next input
             for t in range(1, targ.shape[1]):
